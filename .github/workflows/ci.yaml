@@ -1,3 +1,11 @@
+name: ci-test
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,11 +29,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.20"
+          go-version-file: go.mod
 
-      - name: migrations
+      - name: Install migrate CLI
+        run: |
+          curl -L https://packagecloud.io/golang-migrate/migrate/gpgkey | gpg --dearmor > migrate-keyring.gpg
+          sudo install -o root -g root -m 644 migrate-keyring.gpg /usr/share/keyrings/migrate-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/migrate-keyring.gpg] https://packagecloud.io/golang-migrate/migrate/ubuntu/ jammy main" | sudo tee /etc/apt/sources.list.d/migrate.list
+          sudo apt-get update
+          sudo apt-get install -y migrate
+
+      - name: Run migrations
         run: make migrateup
 
       - name: Build
