@@ -1,0 +1,5 @@
+simplebank
+*.exe
+*.test
+*.out
+.env
