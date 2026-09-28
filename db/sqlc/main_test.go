@@ -2,20 +2,22 @@ package db
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 
+	"example.com/util"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const (
-	dbSource = "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable"
 )
 
 var testQueries *Queries
 
 func CreatePool() (*pgxpool.Pool, error) {
-	return pgxpool.New(context.Background(), dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+	return pgxpool.New(context.Background(), config.DBSource)
 }
 
 func TestMain(m *testing.M) {
