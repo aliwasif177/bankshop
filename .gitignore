@@ -3,3 +3,4 @@ simplebank
 *.test
 *.out
 .env
+app.env
