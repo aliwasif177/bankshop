@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"example.com/api"
-	db "example.com/db/sqlc"
-	"example.com/util"
+	"github.com/aliwasif177/bankshop/api"
+	db "github.com/aliwasif177/bankshop/db/sqlc"
+	"github.com/aliwasif177/bankshop/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,7 +22,7 @@ func main() {
 		fmt.Println("error==>", err)
 	}
 	store := db.NewStore(conn)
-	server := api.NewServer(*store)
+	server := api.NewServer(store)
 	err = server.Start(config.PORT)
 	if err != nil {
 		log.Fatal("cannot start server", err)

@@ -22,6 +22,9 @@ migratedown:
 	-database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" \
 	down
 
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/aliwasif177/bankshop/db/sqlc Store
+	
 test:
 	go test -v -cover ./...
 
@@ -31,4 +34,4 @@ server:
 sqlc:
 	sqlc generate
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock

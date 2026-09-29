@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"example.com/util"
+	"github.com/aliwasif177/bankshop/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

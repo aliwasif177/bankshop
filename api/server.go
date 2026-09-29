@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	db "example.com/db/sqlc"
+	db "github.com/aliwasif177/bankshop/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 

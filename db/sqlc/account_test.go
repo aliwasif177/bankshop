@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"example.com/util"
+	"github.com/aliwasif177/bankshop/util"
 	"github.com/stretchr/testify/require"
 )
 

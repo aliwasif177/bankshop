@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	db "example.com/db/sqlc"
+	db "github.com/aliwasif177/bankshop/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR" `
+	Currency string `json:"currency" binding:"required,oneof=USD EUR CAD" `
 }
 type updateAccountRequest struct {
 	Balance int64 `json:"balance" binding:"required,min=1"`
@@ -22,8 +22,8 @@ type getAccountRequest struct {
 }
 
 type listAccountRequest struct {
-	PageSize   int32 `form:"page_size" binding:"required,min=5,max=10"`
-	PageNumber int32 `form:"page_number" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
@@ -43,7 +43,8 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 	ctx.JSON(http.StatusOK, account)
 }
@@ -80,7 +81,10 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := server.store.ListAccounts(ctx, db.ListAccountsParams{Offset: (req.PageNumber - 1) * req.PageSize, Limit: req.PageSize})
+	accounts, err := server.store.ListAccounts(ctx, db.ListAccountsParams{
+		Offset: (req.PageID - 1) * req.PageSize,
+		Limit:  req.PageSize,
+	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
