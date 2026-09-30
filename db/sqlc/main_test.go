@@ -13,7 +13,7 @@ import (
 var testQueries *Queries
 
 func CreatePool() (*pgxpool.Pool, error) {
-	config, err := util.LoadConfig(".")
+	config, err := util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
