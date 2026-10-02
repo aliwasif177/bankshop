@@ -49,6 +49,9 @@ func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher
 
 func TestCreateUserAPI(t *testing.T) {
 	user, password := randomUser(t)
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+	require.NotEmpty(t, hashedPassword)
 
 	testCases := []struct {
 		name          string
@@ -66,9 +69,10 @@ func TestCreateUserAPI(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateUserParams{
-					Username: user.Username,
-					FullName: user.FullName,
-					Email:    user.Email,
+					Username:       user.Username,
+					FullName:       user.FullName,
+					Email:          user.Email,
+					HashedPassword: hashedPassword,
 				}
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
@@ -99,7 +103,7 @@ func TestCreateUserAPI(t *testing.T) {
 			},
 		},
 		{
-			name: "DuplicateUsername",
+			name: "CreateUserError",
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
@@ -110,10 +114,10 @@ func TestCreateUserAPI(t *testing.T) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(db.User{})
+					Return(db.User{}, sql.ErrConnDone)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusForbidden, recorder.Code)
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 		{
