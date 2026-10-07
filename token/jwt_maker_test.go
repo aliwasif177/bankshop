@@ -66,10 +66,13 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 }
 
 func TestJWTWrongTokenType(t *testing.T) {
-	maker, err := NewJWTMaker(util.RandomString(32))
+	secret := util.RandomString(32)
+	maker, err := NewJWTMaker(secret)
+	require.NoError(t, err)
+	pasetoMaker, err := NewPasetoMaker(secret)
 	require.NoError(t, err)
 
-	token, err := maker.CreateToken(util.RandomOwner(), time.Minute)
+	token, err := pasetoMaker.CreateToken(util.RandomOwner(), time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

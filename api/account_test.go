@@ -49,16 +49,15 @@ func TestGetAccountAPI(t *testing.T) {
 			},
 		},
 		{
-			name:      "UnauthorizedUser",
+			name:      "InvalidToken",
 			accountID: account.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "unauthorized_user", time.Minute)
+				request.Header.Set(authorizationHeaderKey, "Bearer invalid-token")
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-					Times(1).
-					Return(account, nil)
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -155,6 +154,7 @@ func TestGetAccountAPI(t *testing.T) {
 func TestCreateAccountAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
+	account.Currency = util.RandomCurrency()
 
 	testCases := []struct {
 		name          string
@@ -166,6 +166,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "OK",
 			body: gin.H{
+				"owner":    account.Owner,
 				"currency": account.Currency,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
@@ -191,6 +192,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "NoAuthorization",
 			body: gin.H{
+				"owner":    account.Owner,
 				"currency": account.Currency,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
@@ -207,6 +209,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "InternalError",
 			body: gin.H{
+				"owner":    account.Owner,
 				"currency": account.Currency,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
@@ -225,6 +228,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "InvalidCurrency",
 			body: gin.H{
+				"owner":    account.Owner,
 				"currency": "invalid",
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
@@ -301,7 +305,6 @@ func TestListAccountsAPI(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.ListAccountsParams{
-					Owner:  user.Username,
 					Limit:  int32(n),
 					Offset: 0,
 				}
