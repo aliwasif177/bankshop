@@ -5,13 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"example.com/util"
+	"github.com/aliwasif177/bankshop/util"
 	"github.com/stretchr/testify/require"
 )
 
 func createRandomAccount(t *testing.T) Account {
+	user := CreateRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}

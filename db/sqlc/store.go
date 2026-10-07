@@ -8,11 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Store struct {
-	*Queries
-	db *pgxpool.Pool
-}
-
 type TransferTxParams struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
@@ -27,7 +22,18 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+// SQLStore provides all functions to execute SQL queries and transactions
+type SQLStore struct {
+	db *pgxpool.Pool
+	*Queries
+}
+
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -71,16 +77,16 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	return result, err
 }
 
-func NewStore(connPool *pgxpool.Pool) *Store {
+func NewStore(connPool *pgxpool.Pool) Store {
 
-	return &Store{
-		Queries: New(connPool),
+	return &SQLStore{
 		db:      connPool,
+		Queries: New(connPool),
 	}
 }
 
 // execTx executes a function within a database transaction
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 
 	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.ReadCommitted,
