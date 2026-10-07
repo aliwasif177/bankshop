@@ -154,7 +154,7 @@ func TestGetAccountAPI(t *testing.T) {
 func TestCreateAccountAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
-	account.Currency = util.RandomCurrency()
+	account.Currency = "USD"
 
 	testCases := []struct {
 		name          string
